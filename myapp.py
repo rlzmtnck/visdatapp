@@ -21,15 +21,18 @@ from bokeh.models import Slider, Select
 # In[2]:
 
 
-data = pd.read_csv("./gapminder_tidy.csv")
+data = pd.read_csv("./covid.csv")
 data.set_index('Year', inplace=True)
 
+data['Year'] = pd.DatetimeIndex(data['Date']).year
+# print head dari df_can untuk memastikan data sudah terbaca
+data.rename(columns = {'New Cases':'newcases', 'New Deaths':'newdeaths', 'New Recovered':'newrecovered', 'New Active Cases':'newactivecases', 'Total Cases':'totalcases', 'Total Deaths':'totaldeaths', 'Total Recovered':'totalrecovered'}, inplace = True)
 
 # In[3]:
 
 
 # Make a list of the unique values from the region column: regions_list
-regions_list = data.region.unique().tolist()
+regions_list = data.Location.unique().tolist()
 
 # Make a color mapper: color_mapper
 color_mapper = CategoricalColorMapper(factors=regions_list, palette=Spectral6)
@@ -40,11 +43,11 @@ color_mapper = CategoricalColorMapper(factors=regions_list, palette=Spectral6)
 
 # Make the ColumnDataSource: source
 source = ColumnDataSource(data={
-    'x'       : data.loc[1970].fertility,
-    'y'       : data.loc[1970].life,
-    'country' : data.loc[1970].Country,
-    'pop'     : (data.loc[1970].population / 20000000) + 2,
-    'region'  : data.loc[1970].region,
+    'x'       : data.loc[2020].totalcases,
+    'y'       : data.loc[2020].totaldeaths,
+    'country' : data.loc[2020].Island,
+    'pop'     : (data.loc[2020].population / 20000000) + 2,
+    'region'  : data.loc[2020].Location,
 })
 
 
@@ -52,12 +55,12 @@ source = ColumnDataSource(data={
 
 
 # Create the figure: plot
-plot = figure(title='1970', x_axis_label='Fertility (children per woman)', y_axis_label='Life Expectancy (years)',
+plot = figure(title='2020', x_axis_label='Total Cases', y_axis_label='Total Deaths',
            plot_height=400, plot_width=700, tools=[HoverTool(tooltips='@country')])
 
 # Add a circle glyph to the figure p
 plot.circle(x='x', y='y', source=source, fill_alpha=0.8,
-           color=dict(field='region', transform=color_mapper), legend='region')
+           color=dict(field='Location', transform=color_mapper), legend='Location')
 
 # Set the legend and axis attributes
 plot.legend.location = 'bottom_left'
@@ -75,24 +78,24 @@ def update_plot(attr, old, new):
     new_data = {
     'x'       : data.loc[yr][x],
     'y'       : data.loc[yr][y],
-    'country' : data.loc[yr].Country,
+    'country' : data.loc[yr].Island,
     'pop'     : (data.loc[yr].population / 20000000) + 2,
-    'region'  : data.loc[yr].region,
+    'region'  : data.loc[yr].Location,
     }
     source.data = new_data
     
     # Add title to figure: plot.title.text
-    plot.title.text = 'Gapminder data for %d' % yr
+    plot.title.text = 'Covid Cases data for %d' % yr
 
 # Make a slider object: slider
-slider = Slider(start=1970, end=2010, step=1, value=1970, title='Year')
+slider = Slider(start=2020, end=2021, step=1, value=2020, title='Year')
 slider.on_change('value',update_plot)
 
 # Make dropdown menu for x and y axis
 # Create a dropdown Select widget for the x data: x_select
 x_select = Select(
-    options=['fertility', 'life', 'child_mortality', 'gdp'],
-    value='fertility',
+    options=['totalcases', 'totaldeaths', 'totalrecovered', 'newcases', 'newdeaths', 'newrecovered', 'newactivecases'],
+    value='totalcases',
     title='x-axis data'
 )
 # Attach the update_plot callback to the 'value' property of x_select
@@ -100,8 +103,8 @@ x_select.on_change('value', update_plot)
 
 # Create a dropdown Select widget for the y data: y_select
 y_select = Select(
-    options=['fertility', 'life', 'child_mortality', 'gdp'],
-    value='life',
+    options=['totalcases', 'totaldeaths', 'totalrecovered', 'newcases', 'newdeaths', 'newrecovered', 'newactivecases'],
+    value='totaldeaths',
     title='y-axis data'
 )
 # Attach the update_plot callback to the 'value' property of y_select
